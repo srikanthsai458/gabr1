@@ -56,9 +56,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: install dependencies
+        run: npm install
       - name: Test
         run: npm test
-
 
   security:
     needs: test
