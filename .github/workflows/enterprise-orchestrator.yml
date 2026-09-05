@@ -1,90 +1,59 @@
-name: CI-WORKFLOW
+name: Parallel Builds
 
 on:
   push:
-    branches: ["master", "main", "dev"]
-
-  workflow_dispatch:
-    inputs:
-      username:
-        description: "Enter your username"
-        required: true
-        default: "Raham"
-        type: string
-
-      environment:
-        description: "Select deployment environment"
-        required: true
-        default: "staging"
-        type: choice
-        options:
-          - dev
-          - staging
-          - production
-
-      deploy:
-        description: "Do you want to deploy?"
-        required: true
-        default: false
-        type: boolean
-
+    branches:
+      - main
 
 jobs:
 
-  build:
+  build-node18:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show Inputs
-        run: |
-          echo "Username: ${{ inputs.username }}"
-          echo "Environment: ${{ inputs.environment }}"
-          echo "Deploy: ${{ inputs.deploy }}"
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-      - name: Build
+      - name: Install dependencies
         run: npm install
 
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: install dependencies
-        run: npm install
       - name: Test
         run: npm test
 
-  security:
-    needs: test
+  build-node20:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Security Check
-        run: echo "Security scan completed"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Deploy
-        if: ${{ inputs.deploy == true }}
-        run: |
-          echo "Deploying to ${{ inputs.environment }}"
-          echo "Deployed by ${{ inputs.username }}"
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Skip Deployment
-        if: ${{ inputs.deploy == false }}
-        run: echo "Deployment skipped"
+      - name: Install dependencies
+        run: npm install
 
-      - name: Rollback
-        if: failure()
-        run: echo "Rollback is done"
+      - name: Test
+        run: npm test
 
-  info:
-     runs-on: ubuntu-latest
-     steps:
-       - name: Output of the Job
-         run: echo "${{ toJson(github) }}"
+  build-node22:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm test
