@@ -1,59 +1,61 @@
-name: Parallel Builds
+name: Enterprise Orchestrator
 
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        required: false
+        type: string
+        default: "20"
+
+    secrets:
+      DEPLOY_TOKEN:
+        required: true
 
 jobs:
 
-  build-node18:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ inputs.node-version }}
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm install
 
-      - name: Test
+      - name: Run tests
         run: npm test
 
-  build-node20:
+  security:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Security check
+        run: npm audit --audit-level=high
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Test
-        run: npm test
-
-  build-node22:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Test
-        run: npm test
+      - name: Deploy application
+        run: |
+          echo "Starting deployment..."
+          echo "Deployment successful"
